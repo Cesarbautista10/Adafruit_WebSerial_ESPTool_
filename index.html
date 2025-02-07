@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
   <head>
-    <title>Herramienta ESP </title>
+    <title>Adafruit ESPTool</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
-      // Redirigir a HTTPS si se solicita HTTP.
+      // Redirect to HTTPS if HTTP is requested.
       if (
         window.location.hostname !== "localhost" &&
         window.location.protocol === "http:"
@@ -15,7 +15,7 @@
       }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
-    <!-- Importar las hojas de estilo de la página junto con los temas -->
+    <!-- import the web page's stylesheets along with the themes -->
     <link rel="stylesheet" href="https://use.typekit.net/qtk5kiq.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link
@@ -37,21 +37,22 @@
   <body>
     <header class="header">
       <div class="left">
-        <img src="assets/Logo-UNIT_Web-04-800x182.png" class="Adafruit-Logo" style="width: 20%;">
+        <img src="assets/adafruit-logo.svg" class="Adafruit-Logo">
       </div>
       <div class="right">
         <select id="baudRate"></select>
-        <button id="butConnect" type="button">Conectar</button>
+        <button id="butConnect" type="button">Connect</button>
       </div>
     </header>
     <main class="main">
       <div id="notSupported" class="notSupported">
-        Lo sentimos, <b>Web Serial</b> no es compatible con este dispositivo, asegúrate de usar Chrome 89 o superior.
+        Sorry, <b>Web Serial</b> is not supported on this device, make sure
+        you're running Chrome 89 or later.
       </div>
       <div class="subheader">
-        <div class="title left">Herramienta ESP de Adafruit</div>
+        <div class="title left">Adafruit ESPTool</div>
         <div class="right">
-          <label for="noReset"> Sin reinicio para actualizaciones directas</label>
+          <label for="noReset"> No reset for Passthrough updates</label>
           <div class="onoffswitch" style="margin-right: 30px;">
             <input
               type="checkbox"
@@ -65,7 +66,7 @@
               <span class="onoffswitch-switch"></span>
             </label>
           </div>
-          <label for="darkmode"> Modo Oscuro </label>
+          <label for="darkmode"> Dark Mode </label>
           <div class="onoffswitch">
             <input
               type="checkbox"
@@ -84,8 +85,8 @@
       <div id="app">
         <div id="commands">
           <div class="upload">
-            <label>
-              Offset: 0x
+            <label
+              >Offset: 0x
               <input class="offset" type="text" value="0" />
             </label>
             <label class="firmware">
@@ -100,13 +101,13 @@
                   d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"
                 />
               </svg>
-              <span>Selecciona un archivo…</span>
+              <span>Choose a file&hellip;</span>
             </label>
             <div class="progress-bar hidden"><div></div></div>
           </div>
           <div class="upload">
-            <label>
-              Offset: 0x
+            <label
+              >Offset: 0x
               <input class="offset" type="text" value="0" />
             </label>
             <label class="firmware">
@@ -121,13 +122,13 @@
                   d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"
                 />
               </svg>
-              <span>Selecciona un archivo…</span>
+              <span>Choose a file&hellip;</span>
             </label>
             <div class="progress-bar hidden"><div></div></div>
           </div>
           <div class="upload">
-            <label>
-              Offset: 0x
+            <label
+              >Offset: 0x
               <input class="offset" type="text" value="0" />
             </label>
             <label class="firmware">
@@ -142,13 +143,13 @@
                   d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"
                 />
               </svg>
-              <span>Selecciona un archivo…</span>
+              <span>Choose a file&hellip;</span>
             </label>
             <div class="progress-bar hidden"><div></div></div>
           </div>
           <div class="upload">
-            <label>
-              Offset: 0x
+            <label
+              >Offset: 0x
               <input class="offset" type="text" value="0" />
             </label>
             <label class="firmware">
@@ -163,16 +164,16 @@
                   d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"
                 />
               </svg>
-              <span>Selecciona un archivo…</span>
+              <span>Choose a file&hellip;</span>
             </label>
             <div class="progress-bar hidden"><div></div></div>
           </div>
           <div class="buttons">
             <button id="butErase" type="button" disabled="disabled">
-              Borrar
+              Erase
             </button>
             <button id="butProgram" type="button" disabled="disabled">
-              Programar
+              Program
             </button>
           </div>
         </div>
@@ -196,10 +197,9 @@
             </label>
           </div>
         </div>
-        <button id="butClear" type="button">Borrar texto</button>
+        <button id="butClear" type="button">Clear Text</button>
       </div>
       <div class="center">
-        Rewritten by <a href="https://github.com/Cesarbautista10" target="_blank">Cesar Bautista</a> for Unit Electronics.
         Written by <a href="https://github.com/makermelissa">Melissa LeBlanc-Williams</a> for Adafruit Industries.
       </div>
     </footer>
