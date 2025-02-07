@@ -38,12 +38,25 @@
     <!-- href github logo  -->
 
     <header class="header">
-      <div class="left">
-        <img src="assets/logo.png" class="Adafruit-Logo" style="width: 20%;">
+      <div class="right">
+        <!-- <img src="assets/logo.png" class="Adafruit-Logo" style="width: 20%;"> -->
+        <label for="lightmode"> Modo Obscuro </label>
 
+        <div class="onoffswitch">
+          <input
+            type="checkbox"
+            name="darkmode"
+            class="onoffswitch-checkbox"
+            id="darkmode"
+          />
+          <label class="onoffswitch-label" for="darkmode">
+            <span class="onoffswitch-inner"></span>
+            <span class="onoffswitch-switch"></span>
+          </label>
+        </div>
       </div>
         
-      <div class="right">
+      <div class="left">
         <select id="baudRate"></select>
         <button id="butConnect" type="button">Conectar</button>
       </div>
@@ -53,9 +66,8 @@
         Lo siento, <b>Web Serial</b> no es compatible con este dispositivo, asegúrate de ejecutar Chrome 89 o una versión posterior.
       </div>
       <div class="subheader">
-        <div class="title left"> Web ESPTool</div>
+        <!-- <div class="title left"> Web ESPTool</div> -->
         <div class="right">
-          <label for="noReset"> No reiniciar</label>
           <div class="onoffswitch" style="margin-right: 30px;">
             <input
               type="checkbox"
@@ -64,13 +76,10 @@
               id="noReset"
               checked="false"
             />
-            <label class="onoffswitch-label" for="noReset">
-              <span class="onoffswitch-inner"></span>
-              <span class="onoffswitch-switch"></span>
-            </label>
+
           </div>
-          <label for="darkmode"> Modo Obscuro </label>
-          <div class="onoffswitch">
+          <!-- <label for="darkmode"> Modo Obscuro </label> -->
+          <!-- <div class="onoffswitch">
             <input
               type="checkbox"
               name="darkmode"
@@ -81,7 +90,7 @@
               <span class="onoffswitch-inner"></span>
               <span class="onoffswitch-switch"></span>
             </label>
-          </div>
+          </div> -->
         </div>
         </div>
       </div>
