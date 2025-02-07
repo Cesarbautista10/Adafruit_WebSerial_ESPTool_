@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initBaudRate();
     loadAllSettings();
     updateTheme();
-    writeLogLine("ESP Web Flasher loaded.");
+    writeLogLine("Enlace de puerto serie.");
 });
 
 function initBaudRate() {
@@ -399,9 +399,9 @@ function toggleUIToolbar(show) {
 }
 
 function toggleUIConnected(connected) {
-    let lbl = "Connect";
+    let lbl = "Conectar";
     if (connected) {
-        lbl = "Disconnect";
+        lbl = "Desconectar";
     } else {
         toggleUIToolbar(false);
     }
