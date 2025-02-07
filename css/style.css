@@ -334,7 +334,7 @@ div.clear {
 }
 
 .debug-function {
-  color: #8ec641;
+  color: #f0dfa8;
 }
 
 .error-message {
@@ -342,7 +342,7 @@ div.clear {
 }
 
 .timestamp {
-  color: #8ec641;
+  color: #c6ae41;
 }
 
 .progress-bar {
@@ -357,7 +357,7 @@ div.clear {
 
 .progress-bar > div {
   height: 24px;
-  background-color: #71ae1e;
+  background-color: #9cd151;
   width: 0;
 }
 
