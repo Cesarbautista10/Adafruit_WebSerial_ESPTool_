@@ -77,3 +77,9 @@ input, select, button {
 .progress-bar {
   border-color: #333;
 }
+
+.chip-info span {
+  background-color: rgba(0, 167, 233, 0.1);
+  border-color: #00a7e9;
+  color: #000;
+}

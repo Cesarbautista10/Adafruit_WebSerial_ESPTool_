@@ -19,6 +19,9 @@ const progress = document.querySelectorAll(".upload .progress-bar");
 const offsets = document.querySelectorAll(".upload .offset");
 const appDiv = document.getElementById("app");
 const noReset = document.getElementById("noReset");
+const chipInfo = document.getElementById("chipInfo");
+const chipType = document.getElementById("chipType");
+const chipMac = document.getElementById("chipMac");
 
 let device = null;
 let transport = null;
@@ -147,6 +150,9 @@ async function clickConnect() {
             device = null;
         }
         chip = null;
+        chipInfo.classList.add("hidden");
+        chipType.textContent = "";
+        chipMac.textContent = "";
         return;
     }
 
@@ -183,6 +189,24 @@ async function clickConnect() {
         }
 
         chip = await esploader.main(resetMode);
+
+        // Get chip information
+        writeLogLine("Detectado: " + chip);
+        chipType.textContent = "Chip: " + chip;
+        
+        // Get MAC address
+        try {
+            let macAddr = await esploader.readMac();
+            let macStr = formatMacAddr(macAddr);
+            writeLogLine("Dirección MAC: " + macStr);
+            chipMac.textContent = "MAC: " + macStr;
+            chipInfo.classList.remove("hidden");
+        } catch (e) {
+            console.error("Error leyendo MAC:", e);
+            writeLogLine("No se pudo leer la dirección MAC");
+            chipMac.textContent = "MAC: No disponible";
+            chipInfo.classList.remove("hidden");
+        }
 
         // Temporarily broken
         // await esploader.flashId();
@@ -431,4 +455,15 @@ function saveSetting(setting, value) {
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * @name formatMacAddr
+ * Format MAC address from array to string
+ */
+function formatMacAddr(macAddr) {
+    if (!macAddr || macAddr.length === 0) {
+        return "No disponible";
+    }
+    return macAddr.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(":");
 }

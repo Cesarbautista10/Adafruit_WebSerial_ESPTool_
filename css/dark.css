@@ -89,3 +89,9 @@ input {
 .progress-bar {
   border-color: #fff;
 }
+
+.chip-info span {
+  background-color: rgba(0, 167, 233, 0.2);
+  border-color: #00a7e9;
+  color: #fff;
+}
