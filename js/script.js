@@ -1,67 +1,27 @@
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.5.6/bundle.js";
-//import { ESPLoader, Transport } from "./esptool-js/bundle.js";
 
-const baudRates = [921600, 115200, 230400, 460800];
+// Versión reducida: solo conexión y lectura de MAC
+const baudRates = [115200, 921600];
 
-const maxLogLength = 100;
 const log = document.getElementById("log");
 const butConnect = document.getElementById("butConnect");
 const baudRate = document.getElementById("baudRate");
-const butClear = document.getElementById("butClear");
-const butErase = document.getElementById("butErase");
-const butProgram = document.getElementById("butProgram");
-const autoscroll = document.getElementById("autoscroll");
-const lightSS = document.getElementById("light");
-const darkSS = document.getElementById("dark");
-const darkMode = document.getElementById("darkmode");
-const firmware = document.querySelectorAll(".upload .firmware input");
-const progress = document.querySelectorAll(".upload .progress-bar");
-const offsets = document.querySelectorAll(".upload .offset");
-const appDiv = document.getElementById("app");
-const noReset = document.getElementById("noReset");
-const chipInfo = document.getElementById("chipInfo");
-const chipType = document.getElementById("chipType");
-const chipMac = document.getElementById("chipMac");
 
 let device = null;
 let transport = null;
 let esploader = null;
 let chip = null;
-const serialLib = !navigator.serial && navigator.usb ? serial : navigator.serial;
+let detectedMac = null;
+const serialLib = ("serial" in navigator) ? navigator.serial : navigator.usb;
 
 document.addEventListener("DOMContentLoaded", () => {
+    initBaudRate();
     butConnect.addEventListener("click", () => {
-        clickConnect().catch(async (e) => {
-            errorMsg(e.message || e);
-            toggleUIConnected(false);
+        clickConnect().catch((e) => {
+            writeLogLine('Error: ' + (e.message || e));
         });
     });
-    butClear.addEventListener("click", clickClear);
-    butErase.addEventListener("click", clickErase);
-    butProgram.addEventListener("click", clickProgram);
-    for (let i = 0; i < firmware.length; i++) {
-        firmware[i].addEventListener("change", checkFirmware);
-    }
-    for (let i = 0; i < offsets.length; i++) {
-        offsets[i].addEventListener("change", checkProgrammable);
-    }
-    autoscroll.addEventListener("click", clickAutoscroll);
-    baudRate.addEventListener("change", changeBaudRate);
-    darkMode.addEventListener("click", clickDarkMode);
-    noReset.addEventListener("change", clickNoReset);
-
-    window.addEventListener("error", function (event) {
-        console.log("Got an uncaught error: ", event.error);
-    });
-    if ("serial" in navigator) {
-        const notSupported = document.getElementById("notSupported");
-        notSupported.classList.add("hidden");
-    }
-
-    initBaudRate();
-    loadAllSettings();
-    updateTheme();
-    writeLogLine("Enlace de puerto serie.");
+    writeLogLine("Listo: use el botón 'Conectar' para seleccionar puerto y leer MAC.");
 });
 
 function initBaudRate() {
@@ -69,7 +29,7 @@ function initBaudRate() {
         var option = document.createElement("option");
         option.text = rate + " Baud";
         option.value = rate;
-        baudRate.add(option);
+        if (baudRate) baudRate.add(option);
     }
 }
 
@@ -86,41 +46,31 @@ function pruneLog() {
 }
 
 function writeLog(text) {
+    if (!log) return;
     log.innerHTML += text;
-    pruneLog();
 }
 
 function writeLogLine(text) {
     writeLog(text + "<br>");
 }
 
-let detectedMac = null;
-
+// Terminal simplificado para capturar la MAC del output
 const espLoaderTerminal = {
-    clean() {
-        log.innerHTML = "";
-    },
+    clean() { if (log) log.innerHTML = ""; detectedMac = null; },
     writeLine(data) {
         writeLogLine(data);
-        
-        // Capture MAC address from the output
         if (data && typeof data === 'string') {
-            const macMatch = data.match(/MAC:\s*([0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2})/);
+            const macMatch = data.match(/MAC:\s*([0-9a-fA-F:]{17})/);
             if (macMatch) {
                 detectedMac = macMatch[1].toUpperCase();
                 console.log("MAC capturada:", detectedMac);
             }
         }
     },
-    write(data) {
-        writeLog(data);
-    },
+    write(data) { writeLog(data); },
 };
 
-function errorMsg(text) {
-    writeLogLine('<span class="error-message">Error:</span> ' + text);
-    console.error(text);
-}
+function errorMsg(text) { writeLogLine('<span class="error-message">Error:</span> ' + text); console.error(text); }
 
 /**
  * @name updateTheme
@@ -150,136 +100,56 @@ function enableStyleSheet(node, enabled) {
  * Click handler for the connect/disconnect button.
  */
 async function clickConnect() {
-    // Disconnect if connected
+    // Disconnect path
     if (transport !== null) {
-        await transport.disconnect();
-        await transport.waitForUnlock(1500);
-        toggleUIConnected(false);
+        try { await transport.disconnect(); await transport.waitForUnlock(1500); } catch(e){}
         transport = null;
-        if (device !== null) {
-            await device.close();
-            device = null;
-        }
-        chip = null;
+        if (device) { try { await device.close(); } catch(e){} device = null; }
         detectedMac = null;
-        chipInfo.classList.add("hidden");
-        chipType.textContent = "";
-        chipMac.textContent = "";
+        writeLogLine('Desconectado');
         return;
     }
 
-    // Set up device and transport
+    // Request port and create transport
     if (device === null) {
         device = await serialLib.requestPort({});
     }
+    transport = new Transport(device, true);
 
-    if (transport === null) {
-        transport = new Transport(device, true);
-    }
+    const romBaudrate = parseInt(baudRate && baudRate.value ? baudRate.value : 115200);
+    const loaderOptions = { transport: transport, baudrate: romBaudrate, terminal: espLoaderTerminal, debugLogging: false };
+    esploader = new ESPLoader(loaderOptions);
 
     try {
-        const romBaudrate = parseInt(baudRate.value);
-        const loaderOptions = {
-            transport: transport,
-            baudrate: romBaudrate,
-            terminal: espLoaderTerminal,
-            debugLogging: false,
-        };
-
-        esploader = new ESPLoader(loaderOptions);
-
-        let resetMode = "default_reset";
-        if (noReset.checked) {
-            resetMode = "no_reset";
-            try {
-                // Initiate passthrough serial setup
-                await transport.connect(romBaudrate);
-                await transport.disconnect();
-                await sleep(350);
-            } catch (e) {
-            }
-        }
-
-        // Reset detected MAC before connection
+        // Reset captured MAC
         detectedMac = null;
-        
-        chip = await esploader.main(resetMode);
+        chip = await esploader.main('default_reset');
+        writeLogLine('Detectado: ' + chip);
 
-        // Get chip information
-        writeLogLine("Detectado: " + chip);
-        chipType.textContent = "Chip: " + chip;
-        
-        // Get MAC address - use the one captured from terminal output
         if (detectedMac) {
-            chipMac.textContent = "MAC: " + detectedMac;
-            chipInfo.classList.remove("hidden");
-        } else {
-            // If MAC wasn't captured, try alternative methods
-            writeLogLine("Buscando dirección MAC...");
-            
+            writeLogLine('MAC: ' + detectedMac);
+            return;
+        }
+
+        // Fallback: try reading eFuse registers (por ejemplo en H2)
+        if (typeof esploader.readReg === 'function' && chip && chip.toLowerCase().includes('h2')) {
             try {
-                let macAddr = null;
-                
-                // Try reading MAC using readMac if available
-                if (typeof esploader.readMac === 'function') {
-                    try {
-                        macAddr = await esploader.readMac();
-                    } catch (readMacError) {
-                        console.log("readMac no disponible:", readMacError);
-                    }
-                }
-                
-                // Check if MAC is all zeros or invalid
-                const isZeroMac = macAddr && macAddr.every(byte => byte === 0);
-                
-                if (isZeroMac || !macAddr || macAddr.length === 0) {
-                    // Try reading from eFuse registers for H2
-                    if (chip.toLowerCase().includes("h2")) {
-                        try {
-                            const mac0 = await esploader.readReg(0x600B0844);
-                            const mac1 = await esploader.readReg(0x600B0848);
-                            
-                            macAddr = [
-                                (mac1 >> 8) & 0xff,
-                                mac1 & 0xff,
-                                (mac0 >> 24) & 0xff,
-                                (mac0 >> 16) & 0xff,
-                                (mac0 >> 8) & 0xff,
-                                mac0 & 0xff
-                            ];
-                            
-                            writeLogLine("MAC leída desde registros eFuse");
-                        } catch (regError) {
-                            console.error("Error leyendo registros eFuse:", regError);
-                        }
-                    }
-                }
-                
-                if (macAddr) {
-                    let macStr = formatMacAddr(macAddr);
-                    chipMac.textContent = "MAC: " + macStr;
-                } else {
-                    chipMac.textContent = "MAC: No disponible";
-                }
-                
-                chipInfo.classList.remove("hidden");
+                const mac0 = await esploader.readReg(0x600B0844);
+                const mac1 = await esploader.readReg(0x600B0848);
+                const macArr = [ (mac1>>8)&0xff, mac1&0xff, (mac0>>24)&0xff, (mac0>>16)&0xff, (mac0>>8)&0xff, mac0&0xff ];
+                const macStr = macArr.map(b => b.toString(16).padStart(2,'0')).join(':').toUpperCase();
+                writeLogLine('MAC (efuse): ' + macStr);
+                return;
             } catch (e) {
-                console.error("Error obteniendo MAC:", e);
-                chipMac.textContent = "MAC: No disponible";
-                chipInfo.classList.remove("hidden");
+                writeLogLine('No se pudo leer eFuse: ' + (e.message || e));
             }
         }
 
-        // Temporarily broken
-        // await esploader.flashId();
-        toggleUIConnected(true);
-        toggleUIToolbar(true);
-
+        writeLogLine('MAC no encontrada en salida inicial.');
     } catch (e) {
+        writeLogLine('Error durante conexión: ' + (e.message || e));
         console.error(e);
-        errorMsg(e.message);
     }
-    console.log("Settings done for :" + chip);
 }
 
 /**
