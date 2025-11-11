@@ -1,5 +1,3 @@
-/// <reference path="./types.d.ts" />
-
 // @ts-ignore: import from CDN
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.5.6/bundle.js";
 
