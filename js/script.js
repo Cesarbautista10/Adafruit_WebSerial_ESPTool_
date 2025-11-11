@@ -1,4 +1,4 @@
-import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.5.4/bundle.js";
+import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.5.6/bundle.js";
 //import { ESPLoader, Transport } from "./esptool-js/bundle.js";
 
 const baudRates = [921600, 115200, 230400, 460800];
@@ -94,12 +94,23 @@ function writeLogLine(text) {
     writeLog(text + "<br>");
 }
 
+let detectedMac = null;
+
 const espLoaderTerminal = {
     clean() {
         log.innerHTML = "";
     },
     writeLine(data) {
         writeLogLine(data);
+        
+        // Capture MAC address from the output
+        if (data && typeof data === 'string') {
+            const macMatch = data.match(/MAC:\s*([0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2})/);
+            if (macMatch) {
+                detectedMac = macMatch[1].toUpperCase();
+                console.log("MAC capturada:", detectedMac);
+            }
+        }
     },
     write(data) {
         writeLog(data);
@@ -150,6 +161,7 @@ async function clickConnect() {
             device = null;
         }
         chip = null;
+        detectedMac = null;
         chipInfo.classList.add("hidden");
         chipType.textContent = "";
         chipMac.textContent = "";
@@ -188,24 +200,74 @@ async function clickConnect() {
             }
         }
 
+        // Reset detected MAC before connection
+        detectedMac = null;
+        
         chip = await esploader.main(resetMode);
 
         // Get chip information
         writeLogLine("Detectado: " + chip);
         chipType.textContent = "Chip: " + chip;
         
-        // Get MAC address
-        try {
-            let macAddr = await esploader.readMac();
-            let macStr = formatMacAddr(macAddr);
-            writeLogLine("Dirección MAC: " + macStr);
-            chipMac.textContent = "MAC: " + macStr;
+        // Get MAC address - use the one captured from terminal output
+        if (detectedMac) {
+            chipMac.textContent = "MAC: " + detectedMac;
             chipInfo.classList.remove("hidden");
-        } catch (e) {
-            console.error("Error leyendo MAC:", e);
-            writeLogLine("No se pudo leer la dirección MAC");
-            chipMac.textContent = "MAC: No disponible";
-            chipInfo.classList.remove("hidden");
+        } else {
+            // If MAC wasn't captured, try alternative methods
+            writeLogLine("Buscando dirección MAC...");
+            
+            try {
+                let macAddr = null;
+                
+                // Try reading MAC using readMac if available
+                if (typeof esploader.readMac === 'function') {
+                    try {
+                        macAddr = await esploader.readMac();
+                    } catch (readMacError) {
+                        console.log("readMac no disponible:", readMacError);
+                    }
+                }
+                
+                // Check if MAC is all zeros or invalid
+                const isZeroMac = macAddr && macAddr.every(byte => byte === 0);
+                
+                if (isZeroMac || !macAddr || macAddr.length === 0) {
+                    // Try reading from eFuse registers for H2
+                    if (chip.toLowerCase().includes("h2")) {
+                        try {
+                            const mac0 = await esploader.readReg(0x600B0844);
+                            const mac1 = await esploader.readReg(0x600B0848);
+                            
+                            macAddr = [
+                                (mac1 >> 8) & 0xff,
+                                mac1 & 0xff,
+                                (mac0 >> 24) & 0xff,
+                                (mac0 >> 16) & 0xff,
+                                (mac0 >> 8) & 0xff,
+                                mac0 & 0xff
+                            ];
+                            
+                            writeLogLine("MAC leída desde registros eFuse");
+                        } catch (regError) {
+                            console.error("Error leyendo registros eFuse:", regError);
+                        }
+                    }
+                }
+                
+                if (macAddr) {
+                    let macStr = formatMacAddr(macAddr);
+                    chipMac.textContent = "MAC: " + macStr;
+                } else {
+                    chipMac.textContent = "MAC: No disponible";
+                }
+                
+                chipInfo.classList.remove("hidden");
+            } catch (e) {
+                console.error("Error obteniendo MAC:", e);
+                chipMac.textContent = "MAC: No disponible";
+                chipInfo.classList.remove("hidden");
+            }
         }
 
         // Temporarily broken
@@ -465,5 +527,12 @@ function formatMacAddr(macAddr) {
     if (!macAddr || macAddr.length === 0) {
         return "No disponible";
     }
+    
+    // Check if all bytes are zero
+    const isZeroMac = macAddr.every(byte => byte === 0);
+    if (isZeroMac) {
+        return "00:00:00:00:00:00 (No programada)";
+    }
+    
     return macAddr.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(":");
 }
