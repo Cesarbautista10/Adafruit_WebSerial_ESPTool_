@@ -1,0 +1,22 @@
+{
+  "name": "esp32-mac-reader",
+  "version": "1.0.0",
+  "description": "Lector de dirección MAC para dispositivos ESP32 usando Web Serial API",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "python3 -m http.server 8000",
+    "dev": "tsc --watch & python3 -m http.server 8000"
+  },
+  "keywords": ["esp32", "web-serial", "esptool", "mac-address"],
+  "author": "Cesar Bautista",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/web-serial-polyfill": "^1.0.0"
+  },
+  "dependencies": {
+    "esptool-js": "^0.5.6"
+  }
+}
