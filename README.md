@@ -65,15 +65,42 @@ npm run serve
 ### TypeScript Compilation
 
 - **Build once**: `npm run build`
-- **Watch mode**: `npm run watch`
-- **Serve**: `npm run serve`
+- **Watch mode**: `npm run watch` (auto-recompiles on file changes)
+- **Serve**: `npm run serve` (starts local server on port 8000)
 
-### Making Changes
+### Workflow for New Versions
 
-1. Edit `src/script.ts` for application logic
-2. Edit `src/types.d.ts` for type definitions
-3. Run `npm run build` to compile
-4. Test in browser with `npm run serve`
+1. **Edit the TypeScript source code:**
+   ```bash
+   # Edit src/script.ts or src/types.d.ts
+   ```
+
+2. **Compile TypeScript to JavaScript:**
+   ```bash
+   npm run build
+   ```
+   This generates `dist/script.js` from your TypeScript code.
+
+3. **Test locally:**
+   ```bash
+   npm run serve
+   # Open http://localhost:8000 in your browser
+   ```
+
+4. **Commit and push changes:**
+   ```bash
+   git add .
+   git commit -m "Description of your changes"
+   git push
+   ```
+
+**Important:** Always run `npm run build` before committing. The browser uses `dist/script.js`, not the TypeScript source files.
+
+### Development Tips
+
+- Use `npm run watch` during development to automatically recompile on save
+- The compiled `dist/` folder is included in the repository for GitHub Pages
+- Edit only `src/*.ts` files, never edit `dist/*.js` directly
 
 ## Technical Details
 
